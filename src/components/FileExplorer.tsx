@@ -12,6 +12,7 @@ interface FileNode {
   type: "file" | "folder";
   children?: FileNode[];
   content?: string;
+  path: string;
 }
 
 // const mockFiles: FileNode[] = [

@@ -10,9 +10,14 @@ interface Message {
 interface ChatPanelProps {
   initialPrompt: string;
   steps: Step[];
+  onSendMessage?: (message: string) => void;
 }
 
-export const ChatPanel = ({ initialPrompt, steps }: ChatPanelProps) => {
+export const ChatPanel = ({
+  initialPrompt,
+  steps,
+  onSendMessage,
+}: ChatPanelProps) => {
   const [messages, setMessages] = useState<Message[]>([
     { role: "user", content: initialPrompt },
   ]);
@@ -46,17 +51,8 @@ export const ChatPanel = ({ initialPrompt, steps }: ChatPanelProps) => {
   const handleSend = () => {
     if (!input.trim()) return;
     setMessages((prev) => [...prev, { role: "user", content: input }]);
+    if (onSendMessage) onSendMessage(input);
     setInput("");
-    // Mock response
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: "I've updated the code based on your feedback.",
-        },
-      ]);
-    }, 500);
   };
 
   return (
