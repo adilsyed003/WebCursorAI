@@ -8,6 +8,7 @@ import {
   ResizablePanel,
   ResizableHandle,
 } from "@/components/ui/resizable";
+import { Spinner } from "@/components/ui/spinner";
 import axios from "axios";
 import { parseXml } from "@/parse";
 import { Step, StepType } from "@/types";
@@ -20,6 +21,11 @@ interface FileNode {
   content?: string;
   path: string;
 }
+type MountFile = { file: { contents: string } };
+type MountDirectory = {
+  directory: { [name: string]: MountFile | MountDirectory };
+};
+type MountNode = MountFile | MountDirectory;
 
 const Chat = () => {
   const location = useLocation();
@@ -30,7 +36,11 @@ const Chat = () => {
   const [llmMessages, setLlmMessages] = useState<
     { role: "user" | "assistant"; content: string }[]
   >([]);
-  const webcontainer = useContainer();
+  const [mountStructure, setMountStructure] = useState<{
+    [name: string]: MountNode;
+  }>({});
+  const { webcontainer, url, status } = useContainer(mountStructure);
+
   const [loading, setLoading] = useState(false);
   // Helper to build file tree from steps
   useEffect(() => {
@@ -102,9 +112,10 @@ const Chat = () => {
       );
     }
     console.log(files);
-  }, [steps, files]);
+  }, [steps]);
 
   useEffect(() => {
+    if (!prompt) return;
     init();
   }, []);
   async function init() {
@@ -118,6 +129,7 @@ const Chat = () => {
     const parsed = parseXml(uiPrompts[0]);
     setSteps(parsed);
     console.log(parsed[0]);
+    setLoading(true);
     const stepsResponse = await axios.post(
       import.meta.env.VITE_BACKEND_URL + "chat",
       {
@@ -143,21 +155,17 @@ const Chat = () => {
       ...x,
       { role: "assistant", content: stepsResponse.data.response },
     ]);
+    setLoading(false);
   }
 
   useEffect(() => {
     // Types for mount structure
-    type MountFile = { file: { contents: string } };
-    type MountDirectory = {
-      directory: { [name: string]: MountFile | MountDirectory };
-    };
-    type MountNode = MountFile | MountDirectory;
 
     const createMountStructure = (
       files: FileNode[]
     ): { [name: string]: MountNode } => {
       const mountStructure: { [name: string]: MountNode } = {};
-
+      if (files.length === 0) return;
       const processFile = (file: FileNode, isRootFolder: boolean) => {
         if (file.type === "folder") {
           // For folders, create a directory entry
@@ -197,12 +205,10 @@ const Chat = () => {
       return mountStructure;
     };
 
-    const mountStructure = createMountStructure(files);
-
-    // Mount the structure if WebContainer is available
-    console.log(mountStructure);
-    webcontainer?.mount(mountStructure);
-  }, [files, webcontainer]);
+    const structure = createMountStructure(files);
+    console.log(structure);
+    setMountStructure(structure);
+  }, [files]);
 
   if (!prompt) {
     return <Navigate to="/" replace />;
@@ -255,11 +261,17 @@ const Chat = () => {
 
         {/* File Explorer */}
         <ResizablePanel defaultSize={25} minSize={15} maxSize={40}>
-          <FileExplorer
-            files={files}
-            onSelectFile={(file) => setSelectedFile(file)}
-            selectedFile={selectedFile?.name || null}
-          />
+          {loading ? (
+            <div className="flex items-center justify-center h-full">
+              <Spinner />
+            </div>
+          ) : (
+            <FileExplorer
+              files={files}
+              onSelectFile={(file) => setSelectedFile(file)}
+              selectedFile={selectedFile?.name || null}
+            />
+          )}
         </ResizablePanel>
 
         <ResizableHandle withHandle />
@@ -269,7 +281,7 @@ const Chat = () => {
           <EditorPane
             fileName={selectedFile?.name || null}
             content={selectedFile?.content || ""}
-            webContainer={webcontainer}
+            url={url}
           />
         </ResizablePanel>
       </ResizablePanelGroup>
