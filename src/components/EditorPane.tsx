@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Code, Eye } from "lucide-react";
-import { Spinner } from "././ui/spinner";
+import { Spinner } from "./ui/Spinner";
 interface EditorPaneProps {
   fileName: string | null;
   content: string;
