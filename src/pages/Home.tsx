@@ -10,12 +10,12 @@ const Home = () => {
   };
 
   return (
-    <div 
+    <div
       className="min-h-screen flex flex-col items-center justify-center px-4"
       style={{ background: "var(--gradient-bg)" }}
     >
       {/* Glow effect */}
-      <div 
+      <div
         className="fixed inset-0 pointer-events-none animate-pulse-glow"
         style={{ background: "var(--gradient-glow)" }}
       />
@@ -23,10 +23,13 @@ const Home = () => {
       <div className="relative z-10 flex flex-col items-center animate-fade-in">
         {/* Logo */}
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "var(--gradient-primary)" }}>
+          <div
+            className="w-12 h-12 rounded-xl flex items-center justify-center"
+            style={{ background: "var(--gradient-primary)" }}
+          >
             <Sparkles className="w-6 h-6 text-primary-foreground" />
           </div>
-          <h1 className="text-3xl font-bold gradient-text">BuildAI</h1>
+          <h1 className="text-3xl font-bold gradient-text">WebCursor AI</h1>
         </div>
 
         {/* Heading */}
